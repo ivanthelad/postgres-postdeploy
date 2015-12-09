@@ -5,6 +5,7 @@
 #    echo "please enter a db host and a table suffix"
 #    exit 1
 #fi
+env
 
 #export DBHOST=$1
 set PGPASSWORD=$POSTGRESQL_PASSWORD
