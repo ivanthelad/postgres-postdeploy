@@ -1,7 +1,5 @@
 
 #!/bin/bash
-set -e
-set -u
 
 #if [ $# != 2 ]; then
 #    echo "please enter a db host and a table suffix"
