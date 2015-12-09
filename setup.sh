@@ -12,14 +12,11 @@ set -u
 set PGPASSWORD=$POSTGRESQL_PASSWORD
 export PGPASSWORD=$POSTGRESQL_PASSWORD
 psql -w \
-    -X \
     -U $POSTGRESQL_USER \
     -h $POSTGRESQL_SERVICE_HOST \
     -f /init/test/initfile.sql \
     --echo-all \
-    --set AUTOCOMMIT=off \
-    --set ON_ERROR_STOP=on \
-    $POSTGRESQL_DATABASE
+    -d $POSTGRESQL_DATABASE
 
 psql_exit_status = $?
 
