@@ -13,7 +13,7 @@ export TSUFF=$2
 
 psql \
     -X \
-    -U user \
+    -U $DBUSER \
     -h $DBHOST \
     -f /opt/initfile.sql \
     --echo-all \
