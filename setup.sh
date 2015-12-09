@@ -3,23 +3,23 @@
 set -e
 set -u
 
-if [ $# != 2 ]; then
-    echo "please enter a db host and a table suffix"
-    exit 1
-fi
+#if [ $# != 2 ]; then
+#    echo "please enter a db host and a table suffix"
+#    exit 1
+#fi
 
-export DBHOST=$1
-export TSUFF=$2
+#export DBHOST=$1
+SET PGPASSWORD=$POSTGRESQL_PASSWORD
 
-psql \
+psql -w \
     -X \
-    -U $DBUSER \
-    -h $DBHOST \
-    -f /opt/initfile.sql \
+    -U $POSTGRESQL_USER \
+    -h $POSTGRESQL_SERVICE_HOST \
+    -f /init/test/initfile.sql \
     --echo-all \
     --set AUTOCOMMIT=off \
     --set ON_ERROR_STOP=on \
-    $DBNAME
+    $POSTGRESQL_DATABASE
 
 psql_exit_status = $?
 
