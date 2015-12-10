@@ -1,0 +1,294 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "postdeploy-postgres",
+        "namespace": "openshift",
+        "annotations": {
+            "description": "PostgreSQL database service, without persistent storage. WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing",
+            "iconClass": "icon-postgresql",
+            "tags": "database,postgresql"
+        }
+    },
+    "objects": [
+{
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "postdeploy-postgres",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "postdeploy-postgres"
+                },
+                "annotations": {
+                    "openshift.io/generated-by": "postdeploy-postgres-template"
+                }
+            },
+            "status": {
+                "dockerImageRepository": ""
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "postdeploy-postgres",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "postdeploy-postgres"
+                },
+                "annotations": {
+                    "openshift.io/generated-by": "postdeploy-postgres-template"
+                }
+            },
+            "spec": {
+                "triggers": [
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "E5Ia4KHPbXGZNA08gPUy"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "fO9V24uyeheWA4wXIGC8"
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChange": {}
+                    }
+                ],
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "https://github.com/ivanthelad/postgres-postdeploy.git"
+                    }
+                },
+                "strategy": {
+                    "type": "Docker",
+                    "dockerStrategy": {
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "name": "postgresql:latest",
+		            "namespace" : "openshift"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "postdeploy-postgres:latest"
+                    }
+                },
+                "resources": {}
+            },
+            "status": {
+                "lastVersion": 0
+            }
+        }
+,
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${DATABASE_SERVICE_NAME}",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "postgresql",
+                        "protocol": "TCP",
+                        "port": 5432,
+                        "targetPort": 5432,
+                        "nodePort": 0
+                    }
+                ],
+                "selector": {
+                    "name": "${DATABASE_SERVICE_NAME}"
+                },
+                "portalIP": "",
+                "type": "ClusterIP",
+                "sessionAffinity": "None"
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${DATABASE_SERVICE_NAME}",
+                "creationTimestamp": null
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate",
+    "recreateParams": {
+                "post": {
+                    "failurePolicy": "Ignore",
+                    "execNewPod": {
+                        "command": [
+                            "/bin/bash",
+                            "/init/test/setup.sh"
+                        ],
+                        "env": [
+                            {
+                                "name": "POSTGRESQL_USER",
+                                "value": "postgres"
+                            },
+                            {
+                                "name": "POSTGRESQL_PASSWORD",
+                                "value": "${POSTGRESQL_ADMIN_PASSWORD}"
+                            },
+                            {
+                                "name": "POSTGRESQL_DATABASE",
+                                "value": "${POSTGRESQL_DATABASE}"
+                            },
+                            {
+                                "name": "POSTGRESQL_SERVICE_HOST",
+                                "value": "${DATABASE_SERVICE_NAME}"
+                            }
+                        ],
+                        "containerName": "postdeploy-postgres"
+                    }
+                }
+            },
+                    "resources": {}
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "postdeploy-postgres"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "postdeploy-postgres:latest"
+                            },
+                            "lastTriggeredImage": ""
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "name": "${DATABASE_SERVICE_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "name": "${DATABASE_SERVICE_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "postdeploy-postgres",
+                                "image": "postdeploy-postgres",
+                                "ports": [
+                                    {
+                                        "containerPort": 5432,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+ {
+                                        "name": "POSTGRESQL_ADMIN_PASSWORD",
+                                        "value": "${POSTGRESQL_ADMIN_PASSWORD}"
+                                    },
+			               {
+                                        "name": "POSTGRESQL_USER",
+                                        "value": "${POSTGRESQL_USER}"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_PASSWORD",
+                                        "value": "${POSTGRESQL_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_DATABASE",
+                                        "value": "${POSTGRESQL_DATABASE}"
+                                    }
+                                ],
+                                "resources": {},
+                                "volumeMounts": [
+                                    {
+                                        "name": "${DATABASE_SERVICE_NAME}-data",
+                                        "mountPath": "/var/lib/pgsql/data"
+                                    }
+                                ],
+                                "terminationMessagePath": "/dev/termination-log",
+                                "imagePullPolicy": "IfNotPresent",
+                                "capabilities": {},
+                                "securityContext": {
+                                    "capabilities": {},
+                                    "privileged": false
+                                }
+                            }
+                        ],
+                        "volumes": [
+                            {
+                                "name": "${DATABASE_SERVICE_NAME}-data",
+                                "emptyDir": {
+                                    "medium": ""
+                                }
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "dnsPolicy": "ClusterFirst"
+                    }
+                }
+            },
+            "status": {}
+        }
+    ],
+    "parameters": [
+        {
+            "name": "DATABASE_SERVICE_NAME",
+            "description": "Database service name",
+            "value": "postgresql",
+            "required": true
+        },
+        {
+            "name": "POSTGRESQL_USER",
+            "description": "Username for PostgreSQL user that will be used for accessing the database",
+            "generate": "expression",
+            "from": "user[A-Z0-9]{3}",
+            "required": true
+        },
+        {
+            "name": "POSTGRESQL_PASSWORD",
+            "description": "Password for the PostgreSQL user",
+            "generate": "expression",
+            "from": "[a-zA-Z0-9]{16}",
+            "required": true
+        },
+        {
+            "name": "POSTGRESQL_DATABASE",
+            "description": "Database name",
+            "value": "sampledb",
+            "required": true
+        },
+     {
+            "name": "POSTGRESQL_ADMIN_PASSWORD",
+            "description": "AdminPassword for postgres user",
+           "generate": "expression",
+ 	"from": "[a-zA-Z0-9]{16}",
+            "required": true
+        }
+    ],
+    "labels": {
+        "template": "postdeploy-postgres-template"
+    }
+}
