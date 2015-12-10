@@ -19,6 +19,24 @@
                             "/bin/bash",
                             "/init/test/setup.sh"
                         ],
+                        "env": [
+                            {
+                                "name": "POSTGRESQL_USER",
+                                "value": "userJPM"
+                            },
+                            {
+                                "name": "POSTGRESQL_PASSWORD",
+                                "value": "3D1qciOetqo1do3l"
+                            },
+                            {
+                                "name": "POSTGRESQL_DATABASE",
+                                "value": "sampledb"
+                            },
+                            {
+                                "name": "POSTGRESQL_DATABASE",
+                                "value": "goo"
+                            }
+                        ],
                         "containerName": "postgres-postdeploy"
                     }
                 }
