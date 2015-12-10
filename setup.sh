@@ -11,9 +11,9 @@ env
 set PGPASSWORD=$POSTGRESQL_PASSWORD
 export PGPASSWORD=$POSTGRESQL_PASSWORD
 nslookup $POSTGRESQL_SERVICE_HOST
-echo waiting 20 secs;
+echo waiting 20 secs for postgres to start;
 sleep 20;
-echo done
+echo postgres should be started now done
 psql -w \
     -U $POSTGRESQL_USER \
     -h $POSTGRESQL_SERVICE_HOST \
